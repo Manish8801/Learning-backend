@@ -1,8 +1,8 @@
-import upload from "../middlewares/multer.middleware.js";
 import User from "../models/user.model.js";
 import ApiError from "../utils/api-error.js";
 import ApiResponse from "../utils/api-response.js";
 import asyncHandler from "./../utils/async-handler.js";
+import uploadOnCloudinary from "../utils/cloudinary.js";
 
 const registerUser = asyncHandler(async (req, res) => {
     // get user details
@@ -28,9 +28,17 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // check for images and avatars(compulsory)
     // here we get files object because of multer middleware
-    console.log(req.files);
-    const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    let avatarLocalPath;
+    let coverImageLocalPath;
+
+    if (req.files) {
+        if (Array.isArray(req.files.avatar)) {
+            avatarLocalPath = req.files.avatar[0].path;
+        }
+        if (Array.isArray(req.files.coverImage)) {
+            coverImageLocalPath = req.files.coverImage[0].path;
+        }
+    }
 
     if (!avatarLocalPath) {
         throw new ApiError(400, "Missing fields required", {
@@ -39,10 +47,16 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     // upload theme to cloudinary, get avatar url if uploaded
-    const [avatar, coverImage] = await Promise.all([
-        upload(avatarLocalPath),
-        upload(coverImageLocalPath),
-    ]);
+    let avatar, coverImage;
+
+    if (coverImageLocalPath) {
+        [avatar, coverImage] = await Promise.all([
+            uploadOnCloudinary(avatarLocalPath),
+            uploadOnCloudinary(coverImageLocalPath),
+        ]);
+    } else {
+        avatar = await uploadOnCloudinary(avatarLocalPath);
+    }
 
     if (!avatar) {
         throw new ApiError(500, "Failed to upload avatar", {

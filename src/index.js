@@ -15,6 +15,6 @@ import { PORT } from "./constants.js";
       console.log(`Listening on port ${PORT}`);
     });
   } catch (err) {
-    console.log(err.mesage);
+    console.log(err.message);
   }
 })();
