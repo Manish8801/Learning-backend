@@ -38,8 +38,11 @@ router.post("/refresh-token", refreshAccessToken);
 router.post("/changePassword", verifyJwt, changeCurrentPassword);
 
 router.post("/updateDetails", updateAccountDetails);
-export default router;
 
-router.patch("/updateAvatar", );
+router.patch("/updateAvatar");
 
 router.get("", getCurrentUser);
+
+router.get("/channelProfile", getChannelProfile);
+
+export default router;
