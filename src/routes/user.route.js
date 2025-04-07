@@ -41,13 +41,13 @@ router.post("/refresh-token", refreshAccessToken);
 
 router.post("/change-password", verifyJwt, changeCurrentPassword);
 
+router.get("/current-user", verifyJwt, getCurrentUser);
+
 router.patch("/update-details", verifyJwt, updateAccountDetails);
 
 router.post("/update-avatar", verifyJwt, upload.single("avatar"), updateAvatar);
 
-router.patch("/cover-image", verifyJwt, upload.single("coverImage"), updateCoverImage);
-
-router.get("/current-user", verifyJwt, getCurrentUser);
+router.post("/update-cover-image", verifyJwt, upload.single("coverImage"), updateCoverImage);
 
 router.get("/channel-profile/:username", verifyJwt, getChannelProfile);
 

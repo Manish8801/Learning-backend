@@ -4,6 +4,7 @@ import ApiResponse from "../utils/api-response.js";
 import asyncHandler from "./../utils/async-handler.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
@@ -115,7 +116,6 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const login = asyncHandler(async (req, res) => {
-    // get the login details
     const { username, email, password } = req.body;
 
     if (!username && !email) {
@@ -167,8 +167,8 @@ const logout = asyncHandler(async (req, res) => {
     User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: {
-                refreshToken: "",
+            $unset: {
+                refreshToken: 1,
             },
         },
         { new: true }
@@ -260,10 +260,17 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
     const userId = req.user._id;
+
     const updates = ["username", "fullName", "email"].reduce((acc, field) => {
-        if (field in req.body) acc[field] = req.body[field];
+        if (field in req.body) {
+            acc = acc = {
+                ...acc,
+                [field]: req.body[field],
+            };
+        }
+        return acc;
     }, {});
-    console.log(updates);
+
     const user = await User.findByIdAndUpdate(
         userId,
         { $set: updates },
@@ -274,7 +281,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 });
 
 const updateAvatar = asyncHandler(async (req, res) => {
-    let avatarLocalPath = req.files.path;
+    let avatarLocalPath = req.file.path;
 
     if (!avatarLocalPath) {
         throw new ApiError(400, "Avatar is required");
@@ -298,10 +305,10 @@ const updateAvatar = asyncHandler(async (req, res) => {
 });
 
 const updateCoverImage = asyncHandler(async (req, res) => {
-    let coverImageLocalPath = req.files.path;
-
+    console.log(req);
+    let coverImageLocalPath = req.file.path;
     if (!coverImageLocalPath) {
-        throw new ApiError(400, "Avatar is required");
+        throw new ApiError(400, "Cover image is required");
     }
 
     const coverImage = await uploadOnCloudinary(coverImageLocalPath);
@@ -377,7 +384,6 @@ const getChannelProfile = asyncHandler(async (req, res) => {
         },
     ]);
 
-    console.log(channel);
     if (!channel?.length) {
         throw new ApiError(404, "Channel not found");
     }
